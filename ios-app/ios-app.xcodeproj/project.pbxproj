@@ -10,22 +10,9 @@
 		2F90ED0A2DE5760300519220 /* ios-app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ios-app.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		2F90ED1C2DE5760400519220 /* Exceptions for "ios-app" folder in "ios-app" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 2F90ED092DE5760300519220 /* ios-app */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		2F90ED0C2DE5760300519220 /* ios-app */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				2F90ED1C2DE5760400519220 /* Exceptions for "ios-app" folder in "ios-app" target */,
-			);
 			path = "ios-app";
 			sourceTree = "<group>";
 		};
