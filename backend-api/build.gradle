@@ -42,6 +42,8 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
 	// vision api
 	implementation 'com.google.cloud:google-cloud-vision:3.30.0'
+	// selenium
+	implementation 'org.seleniumhq.selenium:selenium-java:4.6.0'
 }
 
 tasks.named('test') {
