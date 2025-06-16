@@ -23,15 +23,12 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
             Authentication authentication
     ) throws IOException, ServletException {
 
-        // 예: 유저 이메일 추출
         OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) authentication;
         OAuth2User oAuth2User = authToken.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        // 앱 리디렉션 URL 구성
         String redirectUrl = "yourapp://login-success?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
 
-        // 앱으로 리디렉션
         response.sendRedirect(redirectUrl);
     }
 }
