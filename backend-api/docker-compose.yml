@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: backend:latest
+    container_name: app
     ports:
       - "8080:8080"
     env_file:
