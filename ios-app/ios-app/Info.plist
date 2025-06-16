@@ -8,7 +8,20 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string></string>
+	<string>이 앱은 사진을 촬영하기 위해 카메라 접근 권한이 필요합니다.</string>
+
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.iosProject.snapfind</string> <!-- ← Xcode에서 확인한 번들 ID로 대체 -->
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>snapfind</string> <!-- ← 여기서 snapfind:// 를 등록 -->
+			</array>
+		</dict>
+	</array>
+
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

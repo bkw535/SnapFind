@@ -4,7 +4,6 @@ services:
       context: .
       dockerfile: Dockerfile
     image: backend:latest
-    container_name: backend-snapfind
     ports:
       - "8080:8080"
     env_file:
@@ -45,6 +44,8 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - app-network
+    depends_on:
+      - app
 
 volumes:
   mysql-data:

@@ -21,6 +21,17 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.rootViewController = loginVC
         window?.makeKeyAndVisible()
     }
+    
+    func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        guard let url = URLContexts.first?.url else { return }
+
+        if url.scheme == "snapfind", url.host == "auth", url.path == "/callback" {
+            // 로그인 완료 → 카메라 화면으로 전환
+            let cameraVC = CameraViewController()
+            window?.rootViewController = cameraVC
+            window?.makeKeyAndVisible()
+        }
+    }
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.
