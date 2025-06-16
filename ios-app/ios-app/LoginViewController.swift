@@ -49,7 +49,7 @@ class LoginViewController: UIViewController {
 
     @objc func handleLogin() {
         // 실제 Google OAuth 로그인 URL로 이동
-        if let url = URL(string: "http://localhost:8080/oauth2/authorization/google") {
+        if let url = URL(string: "https://snapfind.p-e.kr/oauth2/authorization/google") {
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
         }
     }

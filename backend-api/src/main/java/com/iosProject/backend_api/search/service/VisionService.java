@@ -1,6 +1,7 @@
 package com.iosProject.backend_api.search.service;
 
 import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.vision.v1.*;
 import com.google.protobuf.ByteString;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +22,18 @@ import java.util.List;
 public class VisionService {
 
     private final ImageAnnotatorClient visionClient;
+
+    public VisionService() throws IOException {
+        GoogleCredentials credentials = GoogleCredentials.fromStream(
+                new FileInputStream("/app/credentials.json")
+        );
+
+        ImageAnnotatorSettings settings = ImageAnnotatorSettings.newBuilder()
+                .setCredentialsProvider(FixedCredentialsProvider.create(credentials))
+                .build();
+
+        this.visionClient = ImageAnnotatorClient.create(settings);
+    }
 
     public VisionService(@Value("${google.vision.credentials.path}") Resource credentialsResource) throws Exception {
         ServiceAccountCredentials credentials = ServiceAccountCredentials
