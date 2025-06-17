@@ -12,40 +12,15 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String provider;
-    private String providerId;
     private String email;
     private String name;
-
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
-    @Column(name = "refresh_token_expiry")
-    private LocalDateTime refreshTokenExpiry;
-
-    @CreatedDate
-    private LocalDateTime createdAt;
-
-    public User(String provider, String providerId, String email, String name, LocalDateTime now) {
-        this.provider = provider;
-        this.providerId = providerId;
-        this.email = email;
-        this.name = name;
-        this.createdAt = now;
-    }
-
-    public void updateRefreshToken(String refreshToken, LocalDateTime expiry) {
-        this.refreshToken = refreshToken;
-        this.refreshTokenExpiry = expiry;
-    }
 }

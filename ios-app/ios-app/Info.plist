@@ -2,14 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>이 앱은 사진을 촬영하기 위해 카메라 접근 권한이 필요합니다.</string>
-
+	<key>API_BASE_URL</key>
+	<string>https://snapfind.p-e.kr</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -20,8 +14,26 @@
 				<string>snapfind</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>bkw535-hansung.ac.kr.ios-app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.1047662398012-cq3e6ih1906jtkjj0pt88u66bc5292ov</string>
+			</array>
+		</dict>
 	</array>
-
+	<key>GIDClientID</key>
+	<string>1047662398012-cq3e6ih1906jtkjj0pt88u66bc5292ov.apps.googleusercontent.com</string>
+	<key>GOOGLE_REDIRECT_URI</key>
+	<string>snapfind://oauth2/callback</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -41,13 +53,5 @@
 			</array>
 		</dict>
 	</dict>
-
-	<!-- OAuth Configuration -->
-	<key>GOOGLE_CLIENT_ID</key>
-	<string>$(GOOGLE_CLIENT_ID)</string>
-	<key>GOOGLE_REDIRECT_URI</key>
-	<string>$(GOOGLE_REDIRECT_URI)</string>
-	<key>API_BASE_URL</key>
-	<string>$(API_BASE_URL)</string>
 </dict>
 </plist>

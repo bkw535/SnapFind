@@ -1,5 +1,6 @@
 package com.iosProject.backend_api.user.controller;
 
+import com.iosProject.backend_api.user.domain.User;
 import com.iosProject.backend_api.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +16,15 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/oauth2/token")
-    public ResponseEntity<Map<String, String>> processOAuthLogin(
-            @RequestParam String email,
-            @RequestParam String name,
-            @RequestParam String provider,
-            @RequestParam String providerId) {
-        return ResponseEntity.ok(userService.processOAuthPostLogin(email, name, provider, providerId));
+    public ResponseEntity<Map<String, String>> processOAuthLogin(@RequestBody Map<String, String> body) {
+        String idToken = body.get("idToken");
+        return ResponseEntity.ok(userService.processGoogleIdToken(idToken));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser(@RequestParam String email) {
+        User user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/token/refresh")
@@ -32,10 +36,5 @@ public class UserController {
     public ResponseEntity<Void> logout(@RequestParam String email) {
         userService.logout(email);
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<Map<String, String>> getCurrentUser(@RequestParam String email) {
-        return ResponseEntity.ok(Map.of("email", email));
     }
 }

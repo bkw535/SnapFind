@@ -37,18 +37,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 throw new OAuth2AuthenticationException(oauth2Error);
             }
 
-            User user = userRepository.findByProviderAndProviderId(provider, providerId)
-                    .orElseGet(() -> {
-                        User newUser = User.builder()
-                                .provider(provider)
-                                .providerId(providerId)
-                                .email(email)
-                                .name(name)
-                                .createdAt(LocalDateTime.now())
-                                .build();
-                        return userRepository.save(newUser);
-                    });
-
             return oAuth2User;
         } catch (OAuth2AuthenticationException e) {
             throw e;
