@@ -11,25 +11,39 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+    func scene(_ scene: UIScene,
+               willConnectTo session: UISceneSession,
+               options connectionOptions: UIScene.ConnectionOptions) {
+        
         guard let windowScene = (scene as? UIWindowScene) else { return }
-
-//        window = UIWindow(windowScene: windowScene)
-//        window?.rootViewController = MainTabBarController()
-//        window?.makeKeyAndVisible()
-        let loginVC = LoginViewController()
-        window?.rootViewController = loginVC
+        
+        window = UIWindow(windowScene: windowScene)
+        window?.rootViewController = LoginViewController()  // 항상 로그인 화면
         window?.makeKeyAndVisible()
     }
     
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
-        guard let url = URLContexts.first?.url else { return }
-
-        if url.scheme == "snapfind", url.host == "auth", url.path == "/callback" {
-            // 로그인 완료 → 카메라 화면으로 전환
-            let cameraVC = CameraViewController()
-            window?.rootViewController = cameraVC
-            window?.makeKeyAndVisible()
+        guard
+            let url = URLContexts.first?.url,
+            url.scheme == "snapfind",
+            url.host == "auth",
+            url.path == "/callback"
+        else { return }
+        
+        // 로그인 성공 표시
+        UserDefaults.standard.set(true, forKey: "isLoggedIn")
+        
+        // 로그인 성공 후, 메인 탭바로 전환
+        DispatchQueue.main.async {
+            let tabBarController = MainTabBarController()
+            self.window?.rootViewController = tabBarController
+            self.window?.makeKeyAndVisible()
+            
+            // 카메라 탭에서 CameraViewController 표시
+            if let nav = tabBarController.selectedViewController as? UINavigationController {
+                let cameraVC = CameraViewController()
+                nav.pushViewController(cameraVC, animated: false)
+            }
         }
     }
 

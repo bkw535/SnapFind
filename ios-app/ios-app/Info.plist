@@ -14,10 +14,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.iosProject.snapfind</string> <!-- ← Xcode에서 확인한 번들 ID로 대체 -->
+			<string>bkw535-hansung.ac.kr.ios-app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>snapfind</string> <!-- ← 여기서 snapfind:// 를 등록 -->
+				<string>snapfind</string>
 			</array>
 		</dict>
 	</array>
