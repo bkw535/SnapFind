@@ -26,40 +26,42 @@ public class CrawlingService {
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String url = "https://m.11st.co.kr/search?q=" + encodedKeyword;
-            System.out.println("🔍 검색 URL: " + url);
+            String url = "https://search.11st.co.kr/Search.tmall?kwd=" + encodedKeyword;
+            System.out.println("🔍 11번가 검색 URL: " + url);
 
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.c_card_box > a.c_card_item")));
-
-            List<WebElement> itemElements = driver.findElements(By.cssSelector("div.c_card_box > a.c_card_item"));
-
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("#footer > div.b_wing > div > div.c_wing_product_ad")));
+            List<WebElement> adElements = driver.findElements(By.cssSelector("#footer > div.b_wing > div > div.c_wing_product_ad"));
             int count = 0;
-            for (WebElement item : itemElements) {
+            for (WebElement adElement : adElements) {
                 if (count++ >= 5) break;
-
                 try {
-                    String name = item.findElement(By.cssSelector("div.c_card_tit")).getText();
-                    String price = item.findElement(By.cssSelector("div.c_card_price")).getText();
-                    String shopUrl = item.getAttribute("href");
+                    WebElement linkElement = adElement.findElement(By.cssSelector("a"));
+                    WebElement infoElement = adElement.findElement(By.cssSelector("a > div.info"));
+
+                    String name = infoElement.findElement(By.cssSelector(".name")).getText();
+                    String price = infoElement.findElement(By.cssSelector(".price")).getText();
+                    String shopUrl = linkElement.getAttribute("href");
+                    String shop = "11번가";
 
                     ProductInfo product = ProductInfo.builder()
                             .name(name)
                             .price(price)
                             .shopUrl(shopUrl)
-                            .shop("11번가")
+                            .shop(shop)
                             .build();
 
                     result.add(product);
-                } catch (Exception ex) {
-                    System.out.println("❗ 상품 파싱 실패: " + ex.getMessage());
+                    System.out.println("✅ 상품 파싱 성공: " + name);
+                } catch (Exception innerEx) {
+                    System.out.println("❗ 상품 파싱 실패: " + innerEx.getMessage());
                 }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ 크롤링 오류: " + e.getMessage());
+            System.out.println("❌ 11번가 크롤링 오류: " + e.getMessage());
             e.printStackTrace();
         } finally {
             WebDriverUtil.quit(driver);
