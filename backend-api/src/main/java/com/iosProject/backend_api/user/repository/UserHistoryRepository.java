@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface UserHistoryRepository extends JpaRepository<SearchHistory, Long> {
-    List<SearchHistory> findTop10ByUserIdOrderByCreatedAtDesc(Long userId);
+    List<SearchHistory> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

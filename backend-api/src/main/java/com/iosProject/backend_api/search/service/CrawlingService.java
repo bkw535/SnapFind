@@ -32,10 +32,10 @@ public class CrawlingService {
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.main_prodlist > ul > li")));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.product_list > ul > li.prod_item")));
 
             List<WebElement> itemElements = driver.findElements(
-                    By.cssSelector("div.main_prodlist > ul > li:not(.prod_ad_item)")
+                    By.cssSelector("div.product_list > ul > li.prod_item:not(.prod_ad_item)")
             );
 
             String rawKeyword = keyword;
@@ -63,7 +63,7 @@ public class CrawlingService {
                     })
                     .filter(Objects::nonNull)
                     .sorted((a, b) -> Double.compare(b.getKey(), a.getKey())) // 유사도 높은 순
-                    .limit(3)
+                    .limit(2)
                     .map(Map.Entry::getValue)
                     .collect(Collectors.toList());
 

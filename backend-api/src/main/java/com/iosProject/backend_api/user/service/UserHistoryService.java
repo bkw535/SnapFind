@@ -15,7 +15,7 @@ public class UserHistoryService {
     private final UserHistoryRepository userHistoryRepository;
 
     public List<String> getSearchHistory(Long userId) {
-        return userHistoryRepository.findTop10ByUserIdOrderByCreatedAtDesc(userId)
+        return userHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(SearchHistory::getProduct)
                 .collect(Collectors.toList());
