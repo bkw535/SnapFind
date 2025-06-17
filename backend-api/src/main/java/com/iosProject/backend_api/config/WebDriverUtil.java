@@ -2,6 +2,7 @@ package com.iosProject.backend_api.config;
 
 import jakarta.annotation.PostConstruct;
 import java.time.Duration;
+import java.util.Arrays;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -28,6 +29,12 @@ public class WebDriverUtil {
         }
 
         ChromeOptions chromeOptions = new ChromeOptions();
+
+        chromeOptions.setExperimentalOption("excludeSwitches", Arrays.asList("enable-automation"));
+        chromeOptions.setExperimentalOption("useAutomationExtension", false);
+        chromeOptions.addArguments("--disable-blink-features=AutomationControlled");
+        chromeOptions.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36");
+
         chromeOptions.addArguments("--headless=new");
         chromeOptions.addArguments("--lang=ko");
         chromeOptions.addArguments("--no-sandbox");
