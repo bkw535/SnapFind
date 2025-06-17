@@ -32,18 +32,18 @@ public class CrawlingService {
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("ul.srchPrdList > li.srchPrd")));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.c_card_box > a.c_card_item")));
 
-            List<WebElement> itemElements = driver.findElements(By.cssSelector("ul.srchPrdList > li.srchPrd"));
+            List<WebElement> itemElements = driver.findElements(By.cssSelector("div.c_card_box > a.c_card_item"));
 
             int count = 0;
             for (WebElement item : itemElements) {
                 if (count++ >= 5) break;
 
                 try {
-                    String name = item.findElement(By.cssSelector("p.srchPrd__name")).getText();
-                    String price = item.findElement(By.cssSelector("p.srchPrd__price")).getText();
-                    String shopUrl = item.findElement(By.cssSelector("a.srchPrd__link")).getAttribute("href");
+                    String name = item.findElement(By.cssSelector("div.c_card_tit")).getText();
+                    String price = item.findElement(By.cssSelector("div.c_card_price")).getText();
+                    String shopUrl = item.getAttribute("href");
 
                     ProductInfo product = ProductInfo.builder()
                             .name(name)
