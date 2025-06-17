@@ -6,8 +6,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 
@@ -19,26 +21,34 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     @Transactional
-    public OAuth2User loadUser(OAuth2UserRequest request) {
-        OAuth2User oAuth2User = super.loadUser(request);
+    public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
+        try {
+            OAuth2User oAuth2User = super.loadUser(request);
 
-        String provider = request.getClientRegistration().getRegistrationId(); // e.g., "google"
-        String providerId = oAuth2User.getAttribute("sub");
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
+            String provider = request.getClientRegistration().getRegistrationId();
+            String providerId = oAuth2User.getAttribute("sub");
+            String email = oAuth2User.getAttribute("email");
+            String name = oAuth2User.getAttribute("name");
 
-        User user = userRepository.findByProviderAndProviderId(provider, providerId)
-                .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .provider(provider)
-                            .providerId(providerId)
-                            .email(email)
-                            .name(name)
-                            .createdAt(LocalDateTime.now())
-                            .build();
-                    return userRepository.save(newUser);
-                });
+            if (email == null || providerId == null) {
+                throw new OAuth2AuthenticationException("Required attributes are missing");
+            }
 
-        return oAuth2User;
+            User user = userRepository.findByProviderAndProviderId(provider, providerId)
+                    .orElseGet(() -> {
+                        User newUser = User.builder()
+                                .provider(provider)
+                                .providerId(providerId)
+                                .email(email)
+                                .name(name)
+                                .createdAt(LocalDateTime.now())
+                                .build();
+                        return userRepository.save(newUser);
+                    });
+
+            return oAuth2User;
+        } catch (Exception e) {
+            throw new OAuth2AuthenticationException("Failed to load user", e);
+        }
     }
 }

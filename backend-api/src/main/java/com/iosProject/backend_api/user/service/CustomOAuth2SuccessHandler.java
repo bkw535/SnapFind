@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -30,7 +31,16 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
 
         logger.info("OAuth2 로그인 성공 - 이메일: {}", email);
 
-        String redirectUrl = "https://snapfind.p-e.kr/oauth2/callback-to-app?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
+        // 인증 상태를 SecurityContext에 저장
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // 세션에 인증 정보 저장
+        request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
+
+        String redirectUrl = "https://snapfind.p-e.kr/oauth2/callback-to-app?email=" + 
+                           URLEncoder.encode(email, StandardCharsets.UTF_8) +
+                           "&authenticated=true";
+        
         logger.info("성공 핸들러에서 리디렉션 URL로 이동: {}", redirectUrl);
 
         response.sendRedirect(redirectUrl);
