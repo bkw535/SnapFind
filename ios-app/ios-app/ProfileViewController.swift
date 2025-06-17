@@ -31,10 +31,61 @@ class ProfileViewController: UIViewController, UITableViewDataSource, UITableVie
     }
 
     private func fetchSearchHistory() {
-        guard let url = URL(string: "https://snapfind.p-e.kr/api/user/history?userId=1") else { return }
+        guard let email = UserDefaults.standard.string(forKey: "userEmail") else {
+            print("이메일 정보 없음")
+            return
+        }
+        guard let baseURL = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String else {
+            print("API_BASE_URL not found")
+            return
+        }
 
+        let userInfoURL = URL(string: "\(baseURL)/api/users/me?email=\(email)")!
+        var userInfoRequest = URLRequest(url: userInfoURL)
+        userInfoRequest.httpMethod = "GET"
+
+        let userInfoTask = URLSession.shared.dataTask(with: userInfoRequest) { [weak self] data, response, error in
+            guard let self = self else { return }
+            if let error = error {
+                print("사용자 정보 조회 실패: \(error.localizedDescription)")
+                return
+            }
+            guard let data = data else {
+                print("데이터 없음")
+                return
+            }
+
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("사용자 정보 응답: \(responseString)")
+            }
+
+            do {
+                let userJson = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                guard let userId = userJson?["id"] as? Int64 else {
+                    print("사용자 ID 파싱 실패")
+                    return
+                }
+
+                self.fetchHistoryWithUserId(userId: userId)
+            } catch {
+                print("사용자 정보 파싱 실패: \(error.localizedDescription)")
+            }
+        }
+        userInfoTask.resume()
+    }
+
+    private func fetchHistoryWithUserId(userId: Int64) {
+        guard let baseURL = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String else {
+            print("API_BASE_URL not found")
+            return
+        }
+        let url = URL(string: "\(baseURL)/api/users/history?userId=\(userId)")!
         let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             guard let self = self, let data = data, error == nil else { return }
+
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("서버 응답: \(responseString)")
+            }
 
             do {
                 let history = try JSONDecoder().decode([String].self, from: data)
@@ -46,11 +97,8 @@ class ProfileViewController: UIViewController, UITableViewDataSource, UITableVie
                 print("Failed to decode search history: \(error)")
             }
         }
-
         task.resume()
     }
-
-    // MARK: - UITableViewDataSource
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return searchHistory.count
@@ -61,8 +109,6 @@ class ProfileViewController: UIViewController, UITableViewDataSource, UITableVie
         cell.textLabel?.text = searchHistory[indexPath.row]
         return cell
     }
-
-    // MARK: - UITableViewDelegate
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)

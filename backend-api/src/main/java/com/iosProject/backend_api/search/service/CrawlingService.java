@@ -1,7 +1,7 @@
 package com.iosProject.backend_api.search.service;
 
-import com.iosProject.backend_api.search.domain.ProductInfo;
 import com.iosProject.backend_api.config.WebDriverUtil;
+import com.iosProject.backend_api.search.domain.ProductInfo;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -13,16 +13,16 @@ import org.springframework.stereotype.Service;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CrawlingService {
 
     public List<ProductInfo> searchProducts(String keyword) {
-        List<ProductInfo> result = new ArrayList<>();
         WebDriver driver = WebDriverUtil.getChromeDriver();
+        List<ProductInfo> result = new ArrayList<>();
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
@@ -31,35 +31,41 @@ public class CrawlingService {
 
             driver.get(url);
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.main_prodlist > ul > li")));
 
             List<WebElement> itemElements = driver.findElements(
                     By.cssSelector("div.main_prodlist > ul > li:not(.prod_ad_item)")
             );
 
-            int count = 0;
-            for (WebElement item : itemElements) {
-                if (count++ >= 5) break;
+            String rawKeyword = keyword;
 
-                try {
-                    String name = item.findElement(By.cssSelector("p.prod_name > a")).getText();
-                    String price = item.findElement(By.cssSelector("p.price_sect > a")).getText();
-                    String shopUrl = item.findElement(By.cssSelector("p.prod_name > a")).getAttribute("href");
-                    String shop = "다나와";
+            result = itemElements.stream()
+                    .map(item -> {
+                        try {
+                            String name = item.findElement(By.cssSelector("p.prod_name > a")).getText();
+                            String price = item.findElement(By.cssSelector("p.price_sect > a")).getText();
+                            String shopUrl = item.findElement(By.cssSelector("p.prod_name > a")).getAttribute("href");
+                            String shop = "다나와";
 
-                    ProductInfo product = ProductInfo.builder()
-                            .name(name)
-                            .price(price)
-                            .shopUrl(shopUrl)
-                            .shop(shop)
-                            .build();
+                            double sim = StringSimilarity.similarity(rawKeyword, name);
 
-                    result.add(product);
-                } catch (Exception innerEx) {
-                    System.out.println("❗ 상품 파싱 실패: " + innerEx.getMessage());
-                }
-            }
+                            return new AbstractMap.SimpleEntry<>(sim, ProductInfo.builder()
+                                    .name(name)
+                                    .price(price)
+                                    .shopUrl(shopUrl)
+                                    .shop(shop)
+                                    .build());
+
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    })
+                    .filter(Objects::nonNull)
+                    .sorted((a, b) -> Double.compare(b.getKey(), a.getKey())) // 유사도 높은 순
+                    .limit(3)
+                    .map(Map.Entry::getValue)
+                    .collect(Collectors.toList());
 
         } catch (Exception e) {
             System.out.println("❌ 크롤링 오류: " + e.getMessage());
@@ -69,5 +75,31 @@ public class CrawlingService {
         }
 
         return result;
+    }
+
+    // 문자열 유사도 계산용 유틸
+    public static class StringSimilarity {
+        public static int levenshteinDistance(String a, String b) {
+            int[][] dp = new int[a.length() + 1][b.length() + 1];
+
+            for (int i = 0; i <= a.length(); i++) dp[i][0] = i;
+            for (int j = 0; j <= b.length(); j++) dp[0][j] = j;
+
+            for (int i = 1; i <= a.length(); i++) {
+                for (int j = 1; j <= b.length(); j++) {
+                    int cost = a.charAt(i - 1) == b.charAt(j - 1) ? 0 : 1;
+                    dp[i][j] = Math.min(
+                            dp[i - 1][j] + 1,
+                            Math.min(dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost)
+                    );
+                }
+            }
+            return dp[a.length()][b.length()];
+        }
+
+        public static double similarity(String a, String b) {
+            int distance = levenshteinDistance(a.toLowerCase(), b.toLowerCase());
+            return 1.0 - (double) distance / Math.max(a.length(), b.length());
+        }
     }
 }
