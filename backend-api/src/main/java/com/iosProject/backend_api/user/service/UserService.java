@@ -1,14 +1,10 @@
 package com.iosProject.backend_api.user.service;
 
-import com.google.auth.oauth2.IdToken;
-import com.iosProject.backend_api.security.JwtTokenProvider;
 import com.iosProject.backend_api.user.domain.User;
 import com.iosProject.backend_api.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 

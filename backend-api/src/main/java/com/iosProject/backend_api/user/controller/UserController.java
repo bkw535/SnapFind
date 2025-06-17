@@ -28,15 +28,4 @@ public class UserController {
         User user = userService.getUserByEmail(email);
         return ResponseEntity.ok(user);
     }
-
-    @PostMapping("/token/refresh")
-    public ResponseEntity<Map<String, String>> refreshToken(@RequestParam String refreshToken) {
-        return ResponseEntity.ok(userService.refreshToken(refreshToken));
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@RequestParam String email) {
-        userService.logout(email);
-        return ResponseEntity.ok().build();
-    }
 }
