@@ -3,6 +3,7 @@ package com.iosProject.backend_api.user.controller;
 import com.iosProject.backend_api.user.domain.User;
 import com.iosProject.backend_api.user.service.UserHistoryService;
 import com.iosProject.backend_api.user.service.UserService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,5 +37,10 @@ public class UserController {
     @GetMapping("/history")
     public List<String> getUserSearchHistory(@RequestParam Long userId) {
         return userHistoryService.getSearchHistory(userId);
+    }
+
+    @PostConstruct
+    public void init() {
+        System.out.println("✅ UserController 초기화 완료");
     }
 }
