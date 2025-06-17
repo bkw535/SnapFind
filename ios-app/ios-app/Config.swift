@@ -20,15 +20,11 @@ enum Config {
             throw Error.invalidValue
         }
     }
-
-    static let googleClientId = "1047662398012-cq3e6ih1906jtkjj0pt88u66bc5292ov.apps.googleusercontent.com"
-    static let googleRedirectUri = "snapfind://oauth2/callback"
-    static let apiBaseUrl = "https://snapfind.p-e.kr"
 }
 
 enum Configuration {
     static var googleClientId: String {
-        return try! Config.value(for: "GOOGLE_CLIENT_ID")
+        return try! Config.value(for: "GID_CLIENT_ID")
     }
     
     static var googleRedirectUri: String {

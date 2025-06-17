@@ -58,10 +58,8 @@ class LoginViewController: UIViewController {
             let name = user.profile?.name ?? ""
             let idToken = user.idToken?.tokenString ?? ""
 
-            // 이메일을 UserDefaults 등에 저장
             UserDefaults.standard.set(email, forKey: "userEmail")
 
-            // 이메일, 이름, idToken을 백엔드로 전송
             self.sendUserInfoToBackend(email: email, name: name, idToken: idToken) {
                 DispatchQueue.main.async {
                     let cameraVC = CameraViewController()
