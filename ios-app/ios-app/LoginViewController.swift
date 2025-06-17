@@ -66,6 +66,17 @@ class LoginViewController: UIViewController {
         session.presentationContextProvider = self
         session.start()
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+
+        let isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
+        if isLoggedIn {
+            let tabBarController = MainTabBarController()
+            self.view.window?.rootViewController = tabBarController
+            self.view.window?.makeKeyAndVisible()
+        }
+    }
 }
 
 extension LoginViewController: ASWebAuthenticationPresentationContextProviding {
