@@ -27,8 +27,7 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         OAuth2User oAuth2User = authToken.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
-        String redirectUrl = "yourapp://login-success?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
-
+        String redirectUrl = "https://snapfind.p-e.kr/oauth2/callback-to-app?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
         response.sendRedirect(redirectUrl);
     }
 }
