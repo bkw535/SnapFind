@@ -32,9 +32,22 @@ public class CrawlingService {
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-            List<WebElement> itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                    By.cssSelector("div.main_prodlist_list ul.product_list li.prod_item:not(.prod_ad_item)")
-            ));
+            List<WebElement> itemElements = null;
+            try {
+                itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                        By.cssSelector("#productListArea > div.main_prodlist.main_prodlist_list > ul > li.prod_item:not(.prod_ad_item)")
+                ));
+            } catch (Exception e) {
+                System.out.println("첫 번째 셀렉터 실패, 대체 셀렉터 시도 중...");
+                try {
+                    itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                            By.cssSelector("li.prod_item")
+                    ));
+                } catch (Exception ex) {
+                    System.out.println("두 번째 셀렉터도 실패했습니다.");
+                    itemElements = Collections.emptyList();
+                }
+            }
 
             String rawKeyword = keyword;
 
