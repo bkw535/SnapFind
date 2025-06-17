@@ -27,10 +27,8 @@ public class CrawlingService {
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String decodedKeyword = URLDecoder.decode(encodedKeyword, StandardCharsets.UTF_8);
-            String url = "https://search.danawa.com/dsearch.php?query=" + decodedKeyword + "&tab=main";
+            String url = "https://search.danawa.com/dsearch.php?query=" + encodedKeyword + "&tab=main";
             System.out.println("🔍 검색 URL: " + url);
-
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
