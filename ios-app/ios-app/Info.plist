@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>API_BASE_URL</key>
-	<string>https://snapfind.p-e.kr</string>
+	<string>$(API_BASE_URL)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -21,14 +21,12 @@
 			<string>bkw535-hansung.ac.kr.ios-app</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.1047662398012-cq3e6ih1906jtkjj0pt88u66bc5292ov</string>
+				<string>$(GID_CLIENT_ID_REVERSED)</string>
 			</array>
 		</dict>
 	</array>
 	<key>GIDClientID</key>
-	<string>1047662398012-cq3e6ih1906jtkjj0pt88u66bc5292ov.apps.googleusercontent.com</string>
-	<key>GOOGLE_REDIRECT_URI</key>
-	<string>snapfind://oauth2/callback</string>
+	<string>$(GID_CLIENT_ID)</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

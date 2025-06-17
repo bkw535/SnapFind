@@ -12,3 +12,5 @@ build/
 # Xcode user-specific settings
 ios-app.xcodeproj/project.xcworkspace/xcuserdata/
 ios-app.xcodeproj/xcuserdata/
+ios-app/ios-app/Config.swift
+

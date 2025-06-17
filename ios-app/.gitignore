@@ -97,6 +97,8 @@ iOSInjectionProject/
 # Configuration files
 Config.xcconfig
 Config.example.xcconfig
+ios-app/ios-app/Config.swift
+ios-app/ios-app/Config.xcconfig
 
 # macOS
 .DS_Store 

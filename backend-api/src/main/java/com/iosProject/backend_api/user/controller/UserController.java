@@ -18,7 +18,9 @@ public class UserController {
     @PostMapping("/oauth2/token")
     public ResponseEntity<Map<String, String>> processOAuthLogin(@RequestBody Map<String, String> body) {
         String idToken = body.get("idToken");
-        return ResponseEntity.ok(userService.processGoogleIdToken(idToken));
+        String email = body.get("email");
+        String name = body.get("name");
+        return ResponseEntity.ok(userService.processGoogleIdToken(idToken, email, name));
     }
 
     @GetMapping("/me")

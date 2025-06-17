@@ -56,6 +56,8 @@ class LoginViewController: UIViewController {
             print("GIDClientID not found in Info.plist")
             return
         }
+        print("Using client ID: \(clientID)")
+        
         let config = GIDConfiguration(clientID: clientID)
         GIDSignIn.sharedInstance.signIn(withPresenting: self) { result, error in
             if let error = error {
