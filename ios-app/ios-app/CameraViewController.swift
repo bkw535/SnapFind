@@ -157,7 +157,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             }
             guard let data = data,
                   let userJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let userId = userJson["id"] else {
+                  let userId = userJson["id"] as? Int64 else {
                 print("사용자 정보 파싱 실패")
                 return
             }
