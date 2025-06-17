@@ -41,5 +41,13 @@
 			</array>
 		</dict>
 	</dict>
+
+	<!-- OAuth Configuration -->
+	<key>GOOGLE_CLIENT_ID</key>
+	<string>$(GOOGLE_CLIENT_ID)</string>
+	<key>GOOGLE_REDIRECT_URI</key>
+	<string>$(GOOGLE_REDIRECT_URI)</string>
+	<key>API_BASE_URL</key>
+	<string>$(API_BASE_URL)</string>
 </dict>
 </plist>

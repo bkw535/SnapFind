@@ -1,0 +1,9 @@
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+// OAuth Configuration
+GOOGLE_CLIENT_ID = 1047662398012-cq3e6ih1906jtkjj0pt88u66bc5292ov.apps.googleusercontent.com
+GOOGLE_REDIRECT_URI = snapfind://oauth2/callback
+
+// API Configuration
+API_BASE_URL = https://snapfind.p-e.kr 

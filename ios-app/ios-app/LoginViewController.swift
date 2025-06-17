@@ -11,54 +11,51 @@ import AuthenticationServices
 
 class LoginViewController: UIViewController {
     
-    private var authSession: ASWebAuthenticationSession?
-
+    private let loginButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Google로 로그인", for: .normal)
+        button.backgroundColor = .systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 8
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-
-        // Add SnapFind label at the top
-        let titleLabel = UILabel()
-        titleLabel.text = "SnapFind"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 32)
-        titleLabel.textAlignment = .center
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(titleLabel)
-
-        // Configure login button
-        let loginButton = UIButton(type: .system)
-        loginButton.setTitle("Login", for: .normal)
-        loginButton.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        loginButton.backgroundColor = .systemBlue
-        loginButton.setTitleColor(.white, for: .normal)
-        loginButton.layer.cornerRadius = 10
-        loginButton.addTarget(self, action: #selector(handleLogin), for: .touchUpInside)
-        loginButton.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(loginButton)
-
-        // Layout constraints
-        NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
-            loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
-            loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -60),
-            loginButton.heightAnchor.constraint(equalToConstant: 60)
-        ])
+        setupUI()
     }
-
-    @objc func handleLogin() {
-        // 이미 인증 세션이 있다면 제거
-        authSession?.cancel()
-        authSession = nil
+    
+    private func setupUI() {
+        view.backgroundColor = .white
+        view.addSubview(loginButton)
         
-        guard let authURL = URL(string: "https://snapfind.p-e.kr/oauth2/authorization/google") else { return }
+        NSLayoutConstraint.activate([
+            loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loginButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            loginButton.widthAnchor.constraint(equalToConstant: 200),
+            loginButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
         
-        // 새로운 인증 세션 생성
-        authSession = ASWebAuthenticationSession(url: authURL, callbackURLScheme: nil) { [weak self] callbackURL, error in
+        loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+    }
+    
+    @objc private func loginButtonTapped() {
+        guard let clientId = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_CLIENT_ID") as? String,
+              let redirectUri = Bundle.main.object(forInfoDictionaryKey: "GOOGLE_REDIRECT_URI") as? String else {
+            print("Configuration error")
+            return
+        }
+        
+        let authURL = "https://accounts.google.com/o/oauth2/v2/auth?" +
+            "client_id=\(clientId)&" +
+            "redirect_uri=\(redirectUri)&" +
+            "response_type=code&" +
+            "scope=email%20profile"
+        
+        guard let url = URL(string: authURL) else { return }
+        
+        let session = ASWebAuthenticationSession(url: url, callbackURLScheme: "snapfind") { [weak self] callbackURL, error in
             guard let self = self else { return }
             
             if let error = error {
@@ -66,52 +63,82 @@ class LoginViewController: UIViewController {
                 return
             }
             
-            // callbackURL이 nil이면 사용자가 취소한 것
-            guard let callbackURL = callbackURL else {
-                print("Authentication cancelled by user")
+            guard let callbackURL = callbackURL,
+                  let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
+                  let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
+                print("Invalid callback URL")
                 return
             }
             
-            print("OAuth callback received: \(callbackURL.absoluteString)")
-            
-            // URL에서 이메일 파라미터 추출
-            if let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
-               let email = components.queryItems?.first(where: { $0.name == "email" })?.value {
-                print("Received email: \(email)")
-                
-                // 로그인 상태 저장
-                UserDefaults.standard.set(true, forKey: "isLoggedIn")
-                UserDefaults.standard.set(email, forKey: "userEmail")
-                
-                // 메인 화면으로 이동
-                DispatchQueue.main.async {
-                    let tabBarController = MainTabBarController()
-                    self.view.window?.rootViewController = tabBarController
-                    self.view.window?.makeKeyAndVisible()
-                }
-            }
+            self.requestToken(with: code)
         }
         
-        // 세션 설정
-        authSession?.presentationContextProvider = self
-        authSession?.prefersEphemeralWebBrowserSession = true // 새로운 세션 사용
-        authSession?.start()
+        session.presentationContextProvider = self
+        session.start()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-
-        let isLoggedIn = UserDefaults.standard.bool(forKey: "isLoggedIn")
-        if isLoggedIn {
-            let tabBarController = MainTabBarController()
-            self.view.window?.rootViewController = tabBarController
-            self.view.window?.makeKeyAndVisible()
+    private func requestToken(with code: String) {
+        guard let baseURL = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String else {
+            print("API base URL not found")
+            return
         }
+        
+        let url = URL(string: "\(baseURL)/api/users/oauth2/token")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+        
+        let parameters = [
+            "code": code,
+            "client_id": Bundle.main.object(forInfoDictionaryKey: "GOOGLE_CLIENT_ID") as? String ?? "",
+            "redirect_uri": Bundle.main.object(forInfoDictionaryKey: "GOOGLE_REDIRECT_URI") as? String ?? ""
+        ]
+        
+        request.httpBody = parameters
+            .map { "\($0.key)=\($0.value)" }
+            .joined(separator: "&")
+            .data(using: .utf8)
+        
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            guard let self = self else { return }
+            
+            if let error = error {
+                print("Network error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+            
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let accessToken = json["accessToken"] as? String,
+                   let refreshToken = json["refreshToken"] as? String,
+                   let email = json["email"] as? String {
+                    
+                    // 토큰 저장
+                    UserDefaults.standard.set(accessToken, forKey: "accessToken")
+                    UserDefaults.standard.set(refreshToken, forKey: "refreshToken")
+                    UserDefaults.standard.set(email, forKey: "userEmail")
+                    
+                    DispatchQueue.main.async {
+                        // 메인 화면으로 이동
+                        let mainVC = MainViewController()
+                        mainVC.modalPresentationStyle = .fullScreen
+                        self.present(mainVC, animated: true)
+                    }
+                }
+            } catch {
+                print("JSON parsing error: \(error.localizedDescription)")
+            }
+        }.resume()
     }
 }
 
 extension LoginViewController: ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        return self.view.window!
+        return view.window!
     }
 }

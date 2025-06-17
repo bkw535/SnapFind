@@ -27,6 +27,12 @@ public class User {
     private String email;
     private String name;
 
+    @Column(name = "refresh_token")
+    private String refreshToken;
+
+    @Column(name = "refresh_token_expiry")
+    private LocalDateTime refreshTokenExpiry;
+
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -36,5 +42,10 @@ public class User {
         this.email = email;
         this.name = name;
         this.createdAt = now;
+    }
+
+    public void updateRefreshToken(String refreshToken, LocalDateTime expiry) {
+        this.refreshToken = refreshToken;
+        this.refreshTokenExpiry = expiry;
     }
 }
