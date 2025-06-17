@@ -37,12 +37,30 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         // 세션에 인증 정보 저장
         request.getSession().setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
 
-        String redirectUrl = "https://snapfind.p-e.kr/oauth2/callback-to-app?email=" + 
-                           URLEncoder.encode(email, StandardCharsets.UTF_8) +
-                           "&authenticated=true";
+        // iOS 앱으로 직접 리다이렉션
+        String encodedEmail = URLEncoder.encode(email, StandardCharsets.UTF_8);
+        String redirectUrl = "snapfind://oauth2/callback?email=" + encodedEmail;
         
-        logger.info("성공 핸들러에서 리디렉션 URL로 이동: {}", redirectUrl);
+        logger.info("앱으로 리다이렉션: {}", redirectUrl);
 
-        response.sendRedirect(redirectUrl);
+        // HTML 응답 생성
+        String htmlResponse = String.format("""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>로그인 성공</title>
+                <meta http-equiv="refresh" content="0;url=%s">
+            </head>
+            <body>
+                <script>
+                    window.location.href = "%s";
+                </script>
+                <p>앱으로 이동 중입니다...</p>
+            </body>
+            </html>
+            """, redirectUrl, redirectUrl);
+
+        response.setContentType("text/html;charset=UTF-8");
+        response.getWriter().write(htmlResponse);
     }
 }
