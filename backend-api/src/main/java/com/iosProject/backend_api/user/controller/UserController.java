@@ -1,11 +1,13 @@
 package com.iosProject.backend_api.user.controller;
 
 import com.iosProject.backend_api.user.domain.User;
+import com.iosProject.backend_api.user.service.UserHistoryService;
 import com.iosProject.backend_api.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,5 +29,12 @@ public class UserController {
     public ResponseEntity<User> getCurrentUser(@RequestParam String email) {
         User user = userService.getUserByEmail(email);
         return ResponseEntity.ok(user);
+    }
+
+    private final UserHistoryService userHistoryService;
+
+    @GetMapping("/history")
+    public List<String> getUserSearchHistory(@RequestParam Long userId) {
+        return userHistoryService.getSearchHistory(userId);
     }
 }

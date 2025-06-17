@@ -73,6 +73,7 @@ class LoginViewController: UIViewController {
             let idToken = user.idToken?.tokenString ?? ""
 
             UserDefaults.standard.set(email, forKey: "userEmail")
+            print("User email saved: \(email)")
 
             self.sendUserInfoToBackend(email: email, name: name, idToken: idToken) {
                 DispatchQueue.main.async {
