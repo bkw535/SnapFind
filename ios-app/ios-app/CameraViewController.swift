@@ -96,14 +96,13 @@ class CameraViewController: UIViewController {
         }
     }
 
-    // MARK: - 촬영 버튼 UI
     func setupCaptureButton() {
         captureButton = UIButton(type: .custom)
         captureButton.setImage(UIImage(systemName: "circle.fill")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 90)), for: .normal)
         captureButton.tintColor = .white
         captureButton.translatesAutoresizingMaskIntoConstraints = false
         captureButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)
-        captureButton.isEnabled = false // 세션 준비 전까지 비활성화
+        captureButton.isEnabled = false
 
         view.addSubview(captureButton)
 
@@ -115,7 +114,6 @@ class CameraViewController: UIViewController {
         ])
     }
 
-    // MARK: - 사진 촬영
     @objc func capturePhoto() {
         guard photoOutput.connections.first?.isEnabled == true else {
             print("사진 캡처 실패: 활성화된 연결 없음")
@@ -127,7 +125,6 @@ class CameraViewController: UIViewController {
     }
 }
 
-// MARK: - 사진 촬영 결과 처리
 extension CameraViewController: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,
@@ -139,54 +136,80 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             return
         }
 
-        // 이미지 백엔드로 전송 (multipart/form-data)
-        let url = URL(string: "https://snapfind.p-e.kr/api/search")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-
-        // Multipart/form-data boundary
-        let boundary = "Boundary-\(UUID().uuidString)"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-
-        var body = Data()
-
-        // 이미지 파트
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-        body.append(imageData)
-        body.append("\r\n".data(using: .utf8)!)
-
-        // userId 파트 (예: 1)
-        let userId = "1"
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"userId\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(userId)\r\n".data(using: .utf8)!)
-
-        // 종료
-        body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        request.httpBody = body
-
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("이미지 업로드 실패: \(error.localizedDescription)")
-                return
-            }
-
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                print("이미지 업로드 실패: 서버 응답 오류")
-                return
-            }
-
-            print("✅ 이미지 업로드 성공")
-
-            DispatchQueue.main.async {
-                let resultVC = CrawlingResultViewController()
-                resultVC.resultText = "촬영된 이미지 처리됨"
-                self.navigationController?.pushViewController(resultVC, animated: true)
-            }
+        // 1. 이메일로 사용자 id 조회
+        guard let email = UserDefaults.standard.string(forKey: "userEmail") else {
+            print("이메일 정보 없음")
+            return
         }
-        task.resume()
-        return
+        guard let baseURL = Bundle.main.object(forInfoDictionaryKey: "API_BASE_URL") as? String else {
+            print("API_BASE_URL not found")
+            return
+        }
+        let userInfoURL = URL(string: "\(baseURL)/api/users/me?email=\(email)")!
+        var userInfoRequest = URLRequest(url: userInfoURL)
+        userInfoRequest.httpMethod = "GET"
+
+        let userInfoTask = URLSession.shared.dataTask(with: userInfoRequest) { [weak self] data, response, error in
+            guard let self = self else { return }
+            if let error = error {
+                print("사용자 정보 조회 실패: \(error.localizedDescription)")
+                return
+            }
+            guard let data = data,
+                  let userJson = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let userId = userJson["id"] else {
+                print("사용자 정보 파싱 실패")
+                return
+            }
+
+            // 2. 이미지 백엔드로 전송 (multipart/form-data)
+            let url = URL(string: "https://snapfind.p-e.kr/api/search")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+
+            // Multipart/form-data boundary
+            let boundary = "Boundary-\(UUID().uuidString)"
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+            var body = Data()
+
+            // 이미지 파트
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
+            body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
+            body.append(imageData)
+            body.append("\r\n".data(using: .utf8)!)
+
+            // userId 파트 (이메일 기반으로 조회한 id)
+            body.append("--\(boundary)\r\n".data(using: .utf8)!)
+            body.append("Content-Disposition: form-data; name=\"userId\"\r\n\r\n".data(using: .utf8)!)
+            body.append("\(userId)\r\n".data(using: .utf8)!)
+
+            // 종료
+            body.append("--\(boundary)--\r\n".data(using: .utf8)!)
+            request.httpBody = body
+
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    print("이미지 업로드 실패: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    print("이미지 업로드 실패: 서버 응답 오류")
+                    return
+                }
+
+                print("✅ 이미지 업로드 성공")
+
+                DispatchQueue.main.async {
+                    let resultVC = CrawlingResultViewController()
+                    resultVC.resultText = "촬영된 이미지 처리됨"
+                    self.navigationController?.pushViewController(resultVC, animated: true)
+                }
+            }
+            task.resume()
+        }
+        userInfoTask.resume()
     }
 }
