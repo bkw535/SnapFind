@@ -151,6 +151,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             return
         }
         let userInfoURL = URL(string: "\(baseURL)/api/users/me?email=\(email)")!
+        print(userInfoURL)
         var userInfoRequest = URLRequest(url: userInfoURL)
         userInfoRequest.httpMethod = "GET"
 
@@ -208,6 +209,13 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                     if let error = error {
                         print("이미지 업로드 실패: \(error.localizedDescription)")
                         return
+                    }
+
+                    if let httpResponse = response as? HTTPURLResponse {
+                        print("이미지 업로드 응답 코드: \(httpResponse.statusCode)")
+                    }
+                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
+                        print("이미지 업로드 응답 본문: \(responseString)")
                     }
 
                     guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {

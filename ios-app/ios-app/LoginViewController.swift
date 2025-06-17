@@ -94,7 +94,13 @@ class LoginViewController: UIViewController {
             print("API_BASE_URL not found")
             return
         }
-        let url = URL(string: "\(baseURL)/api/users/oauth2/token")!
+        let fullURLString = "\(baseURL)/api/users/oauth2/token"
+        print("📡 요청 URL: \(fullURLString)")
+        
+        guard let url = URL(string: fullURLString) else {
+            print("Invalid URL: \(fullURLString)")
+            return
+        }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
