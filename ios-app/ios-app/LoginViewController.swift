@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import AuthenticationServices
 
 class LoginViewController: UIViewController {
 
@@ -48,9 +49,27 @@ class LoginViewController: UIViewController {
     }
 
     @objc func handleLogin() {
-        // 실제 Google OAuth 로그인 URL로 이동
-        if let url = URL(string: "https://snapfind.p-e.kr/oauth2/authorization/google") {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        guard let authURL = URL(string: "https://snapfind.p-e.kr/oauth2/authorization/google") else { return }
+
+        // callbackURLScheme을 nil로 변경하여 Google OAuth 정책에 맞게 HTTPS 리디렉션을 사용
+        let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: nil) { callbackURL, error in
+            if let error = error {
+                print("Authentication error: \(error.localizedDescription)")
+                return
+            }
+
+            guard let callbackURL = callbackURL else { return }
+            print("OAuth callback received: \(callbackURL.absoluteString)")
+            // Handle OAuth callback here if needed
         }
+
+        session.presentationContextProvider = self
+        session.start()
+    }
+}
+
+extension LoginViewController: ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        return self.view.window!
     }
 }
