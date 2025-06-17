@@ -259,11 +259,15 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                     }
 
                     DispatchQueue.main.async {
-                        let resultVC = CrawlingResultViewController()
-                        resultVC.keyword = keyword
-                        resultVC.products = products
-                        print("검색 결과 페이지로 이동") // 디버그용
-                        self.navigationController?.pushViewController(resultVC, animated: true)
+                        if let tabBarController = self.tabBarController,
+                        let nav = tabBarController.viewControllers?[1] as? UINavigationController,
+                        let resultVC = nav.viewControllers.first as? CrawlingResultViewController {
+                            resultVC.keyword = keyword
+                            resultVC.products = products
+
+                            nav.popToRootViewController(animated: false)
+                            tabBarController.selectedIndex = 1
+                        }
                     }
                 }
                 task.resume()

@@ -23,8 +23,8 @@ class MainTabBarController: UITabBarController {
         profileNav.tabBarItem = UITabBarItem(title: "Profile", image: UIImage(systemName: "person.circle"), tag: 2)
 
         viewControllers = [cameraNav, resultNav, profileNav]
-        tabBar.barTintColor = .gray
-        tabBar.backgroundColor = .gray
+        tabBar.barTintColor = .white
+        tabBar.backgroundColor = .white
         tabBar.isTranslucent = false
     }
 }
