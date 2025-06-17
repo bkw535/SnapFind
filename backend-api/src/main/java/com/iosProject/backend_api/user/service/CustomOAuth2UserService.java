@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +32,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             String name = oAuth2User.getAttribute("name");
 
             if (email == null || providerId == null) {
-                throw new OAuth2AuthenticationException("Required attributes are missing");
+                OAuth2Error oauth2Error = new OAuth2Error("missing_required_attribute", 
+                    "Required attributes are missing", null);
+                throw new OAuth2AuthenticationException(oauth2Error);
             }
 
             User user = userRepository.findByProviderAndProviderId(provider, providerId)
@@ -47,8 +50,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     });
 
             return oAuth2User;
+        } catch (OAuth2AuthenticationException e) {
+            throw e;
         } catch (Exception e) {
-            throw new OAuth2AuthenticationException("Failed to load user", e);
+            OAuth2Error oauth2Error = new OAuth2Error("user_load_error", 
+                "Failed to load user: " + e.getMessage(), null);
+            throw new OAuth2AuthenticationException(oauth2Error);
         }
     }
 }

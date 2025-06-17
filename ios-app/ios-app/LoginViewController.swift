@@ -51,8 +51,8 @@ class LoginViewController: UIViewController {
     @objc func handleLogin() {
         guard let authURL = URL(string: "https://snapfind.p-e.kr/oauth2/authorization/google") else { return }
 
-        // callbackURLScheme을 nil로 변경하여 Google OAuth 정책에 맞게 HTTPS 리디렉션을 사용
-        let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: nil) { callbackURL, error in
+        // snapfind:// 스킴을 사용하여 콜백 처리
+        let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "snapfind") { callbackURL, error in
             if let error = error {
                 print("Authentication error: \(error.localizedDescription)")
                 return
@@ -60,7 +60,23 @@ class LoginViewController: UIViewController {
 
             guard let callbackURL = callbackURL else { return }
             print("OAuth callback received: \(callbackURL.absoluteString)")
-            // Handle OAuth callback here if needed
+            
+            // URL에서 이메일 파라미터 추출
+            if let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
+               let email = components.queryItems?.first(where: { $0.name == "email" })?.value {
+                print("Received email: \(email)")
+                
+                // 로그인 상태 저장
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
+                UserDefaults.standard.set(email, forKey: "userEmail")
+                
+                // 메인 화면으로 이동
+                DispatchQueue.main.async {
+                    let tabBarController = MainTabBarController()
+                    self.view.window?.rootViewController = tabBarController
+                    self.view.window?.makeKeyAndVisible()
+                }
+            }
         }
 
         session.presentationContextProvider = self
