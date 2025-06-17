@@ -10,6 +10,8 @@ import UIKit
 import AuthenticationServices
 
 class LoginViewController: UIViewController {
+    
+    private var authSession: ASWebAuthenticationSession?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,16 +51,27 @@ class LoginViewController: UIViewController {
     }
 
     @objc func handleLogin() {
+        // 이미 인증 세션이 있다면 제거
+        authSession?.cancel()
+        authSession = nil
+        
         guard let authURL = URL(string: "https://snapfind.p-e.kr/oauth2/authorization/google") else { return }
-
-        // snapfind:// 스킴을 사용하여 콜백 처리
-        let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "snapfind") { callbackURL, error in
+        
+        // 새로운 인증 세션 생성
+        authSession = ASWebAuthenticationSession(url: authURL, callbackURLScheme: nil) { [weak self] callbackURL, error in
+            guard let self = self else { return }
+            
             if let error = error {
                 print("Authentication error: \(error.localizedDescription)")
                 return
             }
-
-            guard let callbackURL = callbackURL else { return }
+            
+            // callbackURL이 nil이면 사용자가 취소한 것
+            guard let callbackURL = callbackURL else {
+                print("Authentication cancelled by user")
+                return
+            }
+            
             print("OAuth callback received: \(callbackURL.absoluteString)")
             
             // URL에서 이메일 파라미터 추출
@@ -78,9 +91,11 @@ class LoginViewController: UIViewController {
                 }
             }
         }
-
-        session.presentationContextProvider = self
-        session.start()
+        
+        // 세션 설정
+        authSession?.presentationContextProvider = self
+        authSession?.prefersEphemeralWebBrowserSession = true // 새로운 세션 사용
+        authSession?.start()
     }
     
     override func viewDidAppear(_ animated: Bool) {
