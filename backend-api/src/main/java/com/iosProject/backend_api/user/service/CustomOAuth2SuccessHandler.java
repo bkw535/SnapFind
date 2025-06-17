@@ -23,15 +23,14 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+                                        Authentication authentication) throws IOException, ServletException {
         OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) authentication;
         OAuth2User oAuth2User = authToken.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 
         logger.info("OAuth2 로그인 성공 - 이메일: {}", email);
 
-        // 리디렉션 URL을 중계 페이지로 변경 (이곳에서 앱에 인증 완료 알림 가능)
-        String redirectUrl = "https://snapfind.p-e.kr/oauth-redirect.html?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
+        String redirectUrl = "https://snapfind.p-e.kr/oauth2/callback-to-app?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8);
         logger.info("성공 핸들러에서 리디렉션 URL로 이동: {}", redirectUrl);
 
         response.sendRedirect(redirectUrl);
