@@ -84,7 +84,8 @@ class CameraViewController: UIViewController {
 
         previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         previewLayer.videoGravity = .resizeAspectFill
-        previewLayer.frame = view.bounds
+        let safeAreaFrame = view.safeAreaLayoutGuide.layoutFrame
+        previewLayer.frame = safeAreaFrame
         view.layer.insertSublayer(previewLayer, at: 0)
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -98,7 +99,7 @@ class CameraViewController: UIViewController {
     // MARK: - 촬영 버튼 UI
     func setupCaptureButton() {
         captureButton = UIButton(type: .custom)
-        captureButton.setImage(UIImage(systemName: "circle.fill"), for: .normal)
+        captureButton.setImage(UIImage(systemName: "circle.fill")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 90)), for: .normal)
         captureButton.tintColor = .white
         captureButton.translatesAutoresizingMaskIntoConstraints = false
         captureButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)

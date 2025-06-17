@@ -10,6 +10,15 @@ import GoogleSignIn
 
 class LoginViewController: UIViewController {
     
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "SnapFind"
+        label.font = UIFont.boldSystemFont(ofSize: 36)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     private let loginButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Google로 로그인", for: .normal)
@@ -27,11 +36,14 @@ class LoginViewController: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = .white
+        view.addSubview(titleLabel)
         view.addSubview(loginButton)
         
         NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
+            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loginButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            loginButton.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 400),
             loginButton.widthAnchor.constraint(equalToConstant: 200),
             loginButton.heightAnchor.constraint(equalToConstant: 50)
         ])
@@ -63,8 +75,12 @@ class LoginViewController: UIViewController {
             self.sendUserInfoToBackend(email: email, name: name, idToken: idToken) {
                 DispatchQueue.main.async {
                     let cameraVC = CameraViewController()
-                    cameraVC.modalPresentationStyle = .fullScreen
-                    self.present(cameraVC, animated: true)
+                    if let nav = self.navigationController {
+                        nav.pushViewController(cameraVC, animated: true)
+                    } else {
+                        cameraVC.modalPresentationStyle = .fullScreen
+                        self.present(cameraVC, animated: true)
+                    }
                 }
             }
         }
