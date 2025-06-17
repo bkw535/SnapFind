@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
@@ -26,38 +26,35 @@ public class CrawlingService {
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String url = "https://search.danawa.com/dsearch.php?query=" + encodedKeyword;
+            String url = "https://m.11st.co.kr/search?q=" + encodedKeyword;
             System.out.println("🔍 검색 URL: " + url);
 
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.main_prodlist > ul > li")));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("ul.srchPrdList > li.srchPrd")));
 
-            List<WebElement> itemElements = driver.findElements(
-                    By.cssSelector("div.main_prodlist > ul > li:not(.prod_ad_item)")
-            );
+            List<WebElement> itemElements = driver.findElements(By.cssSelector("ul.srchPrdList > li.srchPrd"));
 
             int count = 0;
             for (WebElement item : itemElements) {
                 if (count++ >= 5) break;
 
                 try {
-                    String name = item.findElement(By.cssSelector("p.prod_name > a")).getText();
-                    String price = item.findElement(By.cssSelector("p.price_sect > a")).getText();
-                    String shopUrl = item.findElement(By.cssSelector("p.prod_name > a")).getAttribute("href");
-                    String shop = "다나와";
+                    String name = item.findElement(By.cssSelector("p.srchPrd__name")).getText();
+                    String price = item.findElement(By.cssSelector("p.srchPrd__price")).getText();
+                    String shopUrl = item.findElement(By.cssSelector("a.srchPrd__link")).getAttribute("href");
 
                     ProductInfo product = ProductInfo.builder()
                             .name(name)
                             .price(price)
                             .shopUrl(shopUrl)
-                            .shop(shop)
+                            .shop("11번가")
                             .build();
 
                     result.add(product);
-                } catch (Exception innerEx) {
-                    System.out.println("❗ 상품 파싱 실패: " + innerEx.getMessage());
+                } catch (Exception ex) {
+                    System.out.println("❗ 상품 파싱 실패: " + ex.getMessage());
                 }
             }
 

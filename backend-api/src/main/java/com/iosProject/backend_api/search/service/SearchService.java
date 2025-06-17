@@ -32,7 +32,7 @@ public class SearchService {
         log.info("추출된 라벨 목록: {}", labels);
 
         List<String> topLabels = labels.stream()
-                .limit(3)
+                .limit(2)
                 .toList();
 
         log.info("사용된 검색 키워드들: {}", topLabels);

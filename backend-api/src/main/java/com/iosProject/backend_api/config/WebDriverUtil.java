@@ -28,11 +28,18 @@ public class WebDriverUtil {
         }
 
         ChromeOptions chromeOptions = new ChromeOptions();
-        chromeOptions.addArguments("--headless=new");
+        chromeOptions.addArguments("--headless=new"); // headless 새 방식
+        chromeOptions.addArguments("--disable-blink-features=AutomationControlled"); // 자동화 탐지 우회
         chromeOptions.addArguments("--lang=ko");
         chromeOptions.addArguments("--no-sandbox");
         chromeOptions.addArguments("--disable-dev-shm-usage");
         chromeOptions.addArguments("--disable-gpu");
+        chromeOptions.addArguments(
+                "user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) " +
+                        "AppleWebKit/605.1.15 (KHTML, like Gecko) " +
+                        "Version/17.0 Mobile/15E148 Safari/604.1"
+        );
+        chromeOptions.addArguments("window-size=430,932");
 
         WebDriver driver = new ChromeDriver(chromeOptions);
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
