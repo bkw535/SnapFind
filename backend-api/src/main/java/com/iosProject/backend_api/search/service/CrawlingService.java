@@ -10,6 +10,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -26,17 +27,16 @@ public class CrawlingService {
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String url = "https://search.danawa.com/dsearch.php?query=" + encodedKeyword;
+            String decodedKeyword = URLDecoder.decode(encodedKeyword, StandardCharsets.UTF_8);
+            String url = "https://search.danawa.com/dsearch.php?query=" + decodedKeyword;
             System.out.println("🔍 검색 URL: " + url);
 
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.product_list > ul > li.prod_item")));
-
-            List<WebElement> itemElements = driver.findElements(
-                    By.cssSelector("div.product_list > ul > li.prod_item:not(.prod_ad_item)")
-            );
+            List<WebElement> itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                    By.cssSelector("div.main_prodlist_list ul.product_list li.prod_item:not(.prod_ad_item)")
+            ));
 
             String rawKeyword = keyword;
 
@@ -77,7 +77,6 @@ public class CrawlingService {
         return result;
     }
 
-    // 문자열 유사도 계산용 유틸
     public static class StringSimilarity {
         public static int levenshteinDistance(String a, String b) {
             int[][] dp = new int[a.length() + 1][b.length() + 1];
