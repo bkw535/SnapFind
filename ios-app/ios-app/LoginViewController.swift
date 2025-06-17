@@ -51,6 +51,15 @@ class LoginViewController: UIViewController {
         loginButton.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
     }
     
+    func switchToMainTabBar() {
+        let tabBarController = MainTabBarController()
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first else { return }
+
+        window.rootViewController = tabBarController
+        window.makeKeyAndVisible()
+    }
+    
     @objc private func loginButtonTapped() {
         guard let clientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String else {
             print("GIDClientID not found in Info.plist")
@@ -76,13 +85,19 @@ class LoginViewController: UIViewController {
             print("User email saved: \(email)")
 
             self.sendUserInfoToBackend(email: email, name: name, idToken: idToken) {
+                UserDefaults.standard.set(true, forKey: "isLoggedIn")
                 DispatchQueue.main.async {
-                    let cameraVC = CameraViewController()
-                    if let nav = self.navigationController {
-                        nav.pushViewController(cameraVC, animated: true)
-                    } else {
-                        cameraVC.modalPresentationStyle = .fullScreen
-                        self.present(cameraVC, animated: true)
+                    guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                          let window = windowScene.windows.first else { return }
+                    
+                    let tabBarController = MainTabBarController()
+                    window.rootViewController = tabBarController
+                    window.makeKeyAndVisible()
+                    
+                    if let cameraNav = tabBarController.viewControllers?.first as? UINavigationController {
+                        let cameraVC = CameraViewController()
+                        cameraNav.setViewControllers([cameraVC], animated: false)
+                        tabBarController.selectedIndex = 0
                     }
                 }
             }

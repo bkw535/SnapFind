@@ -82,11 +82,26 @@ class CameraViewController: UIViewController {
             print("카메라 출력 설정 실패")
         }
 
+        // 👇 preview view 생성
+        let previewView = UIView()
+        previewView.translatesAutoresizingMaskIntoConstraints = false
+        previewView.clipsToBounds = true // 중요: 영역 초과 방지
+        view.insertSubview(previewView, at: 0)
+
+        NSLayoutConstraint.activate([
+            previewView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            previewView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -tabBarHeight())
+        ])
+
         previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         previewLayer.videoGravity = .resizeAspectFill
-        let safeAreaFrame = view.safeAreaLayoutGuide.layoutFrame
-        previewLayer.frame = safeAreaFrame
-        view.layer.insertSublayer(previewLayer, at: 0)
+        previewView.layer.addSublayer(previewLayer)
+
+        DispatchQueue.main.async {
+            self.previewLayer.frame = previewView.bounds
+        }
 
         DispatchQueue.global(qos: .userInitiated).async {
             self.captureSession.startRunning()
@@ -96,9 +111,18 @@ class CameraViewController: UIViewController {
         }
     }
 
+    private func tabBarHeight() -> CGFloat {
+        return tabBarController?.tabBar.frame.height ?? 20
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        previewLayer?.frame = view.subviews.first(where: { $0.layer.sublayers?.contains(previewLayer) == true })?.bounds ?? .zero
+    }
+
     func setupCaptureButton() {
         captureButton = UIButton(type: .custom)
-        captureButton.setImage(UIImage(systemName: "circle.fill")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 90)), for: .normal)
+        captureButton.setImage(UIImage(systemName: "circle.fill")?.withConfiguration(UIImage.SymbolConfiguration(pointSize: 70)), for: .normal)
         captureButton.tintColor = .white
         captureButton.translatesAutoresizingMaskIntoConstraints = false
         captureButton.addTarget(self, action: #selector(capturePhoto), for: .touchUpInside)
@@ -211,23 +235,34 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                         return
                     }
 
-                    if let httpResponse = response as? HTTPURLResponse {
-                        print("이미지 업로드 응답 코드: \(httpResponse.statusCode)")
-                    }
-                    if let data = data, let responseString = String(data: data, encoding: .utf8) {
-                        print("이미지 업로드 응답 본문: \(responseString)")
-                    }
-
                     guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                         print("이미지 업로드 실패: 서버 응답 오류")
                         return
                     }
 
-                    print("✅ 이미지 업로드 성공")
+                    guard let data = data else {
+                        print("이미지 업로드 응답 데이터 없음")
+                        return
+                    }
+
+                    var products: [Product] = []
+                    var keyword: String?
+                    do {
+                        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                        let keywordValue = json["keyword"] as? String,
+                        let productList = json["products"] as? [[String: Any]] {
+                            keyword = keywordValue
+                            products = productList.compactMap { Product(dict: $0) }
+                        }
+                    } catch {
+                        print("검색 결과 파싱 실패: \(error.localizedDescription)")
+                    }
 
                     DispatchQueue.main.async {
                         let resultVC = CrawlingResultViewController()
-                        resultVC.resultText = "촬영된 이미지 처리됨"
+                        resultVC.keyword = keyword
+                        resultVC.products = products
+                        print("검색 결과 페이지로 이동") // 디버그용
                         self.navigationController?.pushViewController(resultVC, animated: true)
                     }
                 }
