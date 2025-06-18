@@ -150,6 +150,21 @@ class CameraViewController: UIViewController {
 }
 
 extension CameraViewController: AVCapturePhotoCaptureDelegate {
+    
+    func resizeImage(_ image: UIImage, targetSize: CGSize) -> UIImage {
+        let size = image.size
+        let widthRatio  = targetSize.width  / size.width
+        let heightRatio = targetSize.height / size.height
+        let scaleRatio = min(widthRatio, heightRatio)
+
+        let newSize = CGSize(width: size.width * scaleRatio, height: size.height * scaleRatio)
+
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
+    }
+    
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,
                      error: Error?) {
@@ -159,6 +174,20 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             print("사진 처리 실패")
             return
         }
+        
+        // 🔍 원본 해상도 출력
+        print("📸 원본 이미지 해상도: \(image.size.width) x \(image.size.height)")
+        
+        // 🖼️ 이미지 리사이징 (1024px 너비 기준)
+        let resizedImage = resizeImage(image, targetSize: CGSize(width: 1024, height: 1024))
+        print("🖼️ 리사이즈된 해상도: \(resizedImage.size.width) x \(resizedImage.size.height)")
+        
+        // 🗜️ 압축
+        guard let compressedImageData = resizedImage.jpegData(compressionQuality: 0.3) else {
+            print("이미지 압축 실패")
+            return
+        }
+        print("🗜️ 리사이즈+압축된 이미지 크기: \(compressedImageData.count / 1024) KB")
 
         // 1. 이메일로 사용자 id 조회
         guard let email = UserDefaults.standard.string(forKey: "userEmail") else {
@@ -217,7 +246,7 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                 body.append("--\(boundary)\r\n".data(using: .utf8)!)
                 body.append("Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
                 body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
-                body.append(imageData)
+                body.append(compressedImageData)
                 body.append("\r\n".data(using: .utf8)!)
 
                 // userId 파트 (이메일 기반으로 조회한 id)
