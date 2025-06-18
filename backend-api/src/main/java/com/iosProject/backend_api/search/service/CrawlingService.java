@@ -27,21 +27,30 @@ public class CrawlingService {
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String url = "https://search.danawa.com/dsearch.php?query=" + encodedKeyword + "&tab=main";
+            String url = "https://m.danawa.com/search/?keyword=" + encodedKeyword;
             System.out.println("🔍 검색 URL: " + url);
             driver.get(url);
+            System.out.println("페이지 소스: " + driver.getPageSource());
+            Thread.sleep(10000);
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
             List<WebElement> itemElements = null;
             try {
+                // 모바일 버전의 셀렉터
                 itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                        By.cssSelector("#productListArea > div.main_prodlist.main_prodlist_list > ul > li.prod_item:not(.prod_ad_item)")
+                        By.cssSelector("div.prod_item:not(.prod_ad_item)")
                 ));
             } catch (Exception e) {
-                // 혹시 위 셀렉터 실패 시, 조금 더 넓은 범위로 시도
-                itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                        By.cssSelector("li.prod_item:not(.prod_ad_item)")
-                ));
+                System.out.println("❌ 첫 번째 셀렉터 실패: " + e.getMessage());
+                // 대체 셀렉터 시도
+                try {
+                    itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                            By.cssSelector("div.prod_item")
+                    ));
+                } catch (Exception e2) {
+                    System.out.println("❌ 두 번째 셀렉터도 실패: " + e2.getMessage());
+                    return result;
+                }
             }
 
             String rawKeyword = keyword;
@@ -49,9 +58,9 @@ public class CrawlingService {
             result = itemElements.stream()
                     .map(item -> {
                         try {
-                            String name = item.findElement(By.cssSelector("p.prod_name > a")).getText();
-                            String price = item.findElement(By.cssSelector("p.price_sect > a")).getText();
-                            String shopUrl = item.findElement(By.cssSelector("p.prod_name > a")).getAttribute("href");
+                            String name = item.findElement(By.cssSelector("p.prod_name")).getText();
+                            String price = item.findElement(By.cssSelector("p.price")).getText();
+                            String shopUrl = item.findElement(By.cssSelector("a.prod_link")).getAttribute("href");
                             String shop = "다나와";
 
                             double sim = StringSimilarity.similarity(rawKeyword, name);
@@ -64,6 +73,7 @@ public class CrawlingService {
                                     .build());
 
                         } catch (Exception e) {
+                            System.out.println("❗ 상품 파싱 실패: " + e.getMessage());
                             return null;
                         }
                     })
