@@ -23,6 +23,7 @@ public class SearchController {
             @RequestParam("userId") Long userId
     ) {
         SearchResultResponse response = searchService.processSearch(file, userId);
+        System.out.println("파일명: " + file.getOriginalFilename() + ", userId: " + userId);
         return ResponseEntity.ok(response);
     }
 }

@@ -228,8 +228,13 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                 // 종료
                 body.append("--\(boundary)--\r\n".data(using: .utf8)!)
                 request.httpBody = body
+                
+                let config = URLSessionConfiguration.default
+                config.timeoutIntervalForRequest = 60  // 요청 타임아웃 60초
 
-                let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                let session = URLSession(configuration: config)
+                
+                let task = session.dataTask(with: request) { data, response, error in
                     if let error = error {
                         print("이미지 업로드 실패: \(error.localizedDescription)")
                         return
