@@ -15,16 +15,12 @@ public class UserService {
     private final UserRepository userRepository;
 
     public Map<String, String> processGoogleIdToken(String idToken, String email, String name) {
-        // (1) idToken 검증 로직이 필요하다면 추가
-        // (2) 이메일로 사용자 조회
         Optional<User> optionalUser = userRepository.findByEmail(email);
         User user;
         if (optionalUser.isPresent()) {
-            // 이미 존재하면 이름만 업데이트
             user = optionalUser.get();
             user.setName(name);
         } else {
-            // 없으면 새로 생성
             user = User.builder()
                     .email(email)
                     .name(name)

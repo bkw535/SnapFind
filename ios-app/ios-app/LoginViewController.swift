@@ -9,14 +9,13 @@ import UIKit
 import GoogleSignIn
 
 class LoginViewController: UIViewController {
-    
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "SnapFind"
-        label.font = UIFont.boldSystemFont(ofSize: 36)
-        label.textAlignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+
+    private let logoImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "snapfind")
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
     }()
     
     private let loginButton: UIButton = {
@@ -36,14 +35,19 @@ class LoginViewController: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = .white
-        view.addSubview(titleLabel)
+        view.addSubview(logoImageView)
         view.addSubview(loginButton)
         
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            // 로고 이미지뷰 제약
+            logoImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
+            logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            logoImageView.widthAnchor.constraint(equalToConstant: 230),
+            logoImageView.heightAnchor.constraint(equalToConstant: 230),
+
+            // 로그인 버튼 제약
             loginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            loginButton.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 400),
+            loginButton.topAnchor.constraint(equalTo: logoImageView.bottomAnchor, constant: 100),
             loginButton.widthAnchor.constraint(equalToConstant: 200),
             loginButton.heightAnchor.constraint(equalToConstant: 50)
         ])

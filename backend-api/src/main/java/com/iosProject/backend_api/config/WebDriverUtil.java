@@ -42,7 +42,7 @@ public class WebDriverUtil {
         );
 
         WebDriver driver = new ChromeDriver(chromeOptions);
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(90));
         return driver;
     }
 

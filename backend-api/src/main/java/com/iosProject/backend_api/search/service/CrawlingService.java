@@ -28,7 +28,7 @@ public class CrawlingService {
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String url = "https://search.danawa.com/dsearch.php?query=" + encodedKeyword;
+            String url = "https://search.danawa.com/dsearch.php?query=" + encodedKeyword + "&tab=main";
             System.out.println("🔍 검색 URL: " + url);
             driver.get(url);
 
@@ -36,7 +36,7 @@ public class CrawlingService {
                 TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException ignored) {}
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
             try {
                 wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
                         By.cssSelector("#productListArea li.prod_item")
