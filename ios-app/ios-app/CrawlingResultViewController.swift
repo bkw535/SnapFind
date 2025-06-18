@@ -42,8 +42,6 @@ class CrawlingResultViewController: UIViewController, UITableViewDataSource, UIT
         view.addSubview(tableView)
     }
 
-    // MARK: - UITableViewDataSource
-
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return products.count
     }
@@ -55,8 +53,6 @@ class CrawlingResultViewController: UIViewController, UITableViewDataSource, UIT
         cell.accessoryType = .disclosureIndicator
         return cell
     }
-
-    // MARK: - UITableViewDelegate
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let product = products[indexPath.row]

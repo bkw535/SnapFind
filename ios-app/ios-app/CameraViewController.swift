@@ -39,7 +39,6 @@ class CameraViewController: UIViewController {
         }
     }
 
-    // MARK: - 카메라 권한 확인
     func checkCameraPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -56,13 +55,11 @@ class CameraViewController: UIViewController {
             }
         case .denied, .restricted:
             print("카메라 접근이 차단되어 있습니다.")
-            // 사용자에게 설정에서 권한을 허용하라고 알림
         @unknown default:
             break
         }
     }
 
-    // MARK: - 카메라 세션 설정
     func setupCamera() {
         captureSession = AVCaptureSession()
         captureSession.sessionPreset = .photo
@@ -82,10 +79,9 @@ class CameraViewController: UIViewController {
             print("카메라 출력 설정 실패")
         }
 
-        // 👇 preview view 생성
         let previewView = UIView()
         previewView.translatesAutoresizingMaskIntoConstraints = false
-        previewView.clipsToBounds = true // 중요: 영역 초과 방지
+        previewView.clipsToBounds = true
         view.insertSubview(previewView, at: 0)
 
         NSLayoutConstraint.activate([
@@ -175,21 +171,17 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
             return
         }
         
-        // 🔍 원본 해상도 출력
         print("📸 원본 이미지 해상도: \(image.size.width) x \(image.size.height)")
         
-        // 🖼️ 이미지 리사이징 (1024px 너비 기준)
         let resizedImage = resizeImage(image, targetSize: CGSize(width: 1024, height: 1024))
         print("🖼️ 리사이즈된 해상도: \(resizedImage.size.width) x \(resizedImage.size.height)")
         
-        // 🗜️ 압축
-        guard let compressedImageData = resizedImage.jpegData(compressionQuality: 0.3) else {
+        guard let compressedImageData = resizedImage.jpegData(compressionQuality: 0.5) else {
             print("이미지 압축 실패")
             return
         }
         print("🗜️ 리사이즈+압축된 이미지 크기: \(compressedImageData.count / 1024) KB")
 
-        // 1. 이메일로 사용자 id 조회
         guard let email = UserDefaults.standard.string(forKey: "userEmail") else {
             print("이메일 정보 없음")
             return
@@ -219,7 +211,6 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                 return
             }
             
-            // 디버그: 서버 응답 출력
             if let responseString = String(data: data, encoding: .utf8) {
                 print("서버 응답: \(responseString)")
             }
@@ -231,35 +222,30 @@ extension CameraViewController: AVCapturePhotoCaptureDelegate {
                     return
                 }
                 
-                // 2. 이미지 백엔드로 전송 (multipart/form-data)
                 let url = URL(string: "https://snapfind.p-e.kr/api/search")!
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
 
-                // Multipart/form-data boundary
                 let boundary = "Boundary-\(UUID().uuidString)"
                 request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
 
                 var body = Data()
 
-                // 이미지 파트
                 body.append("--\(boundary)\r\n".data(using: .utf8)!)
                 body.append("Content-Disposition: form-data; name=\"file\"; filename=\"photo.jpg\"\r\n".data(using: .utf8)!)
                 body.append("Content-Type: image/jpeg\r\n\r\n".data(using: .utf8)!)
                 body.append(compressedImageData)
                 body.append("\r\n".data(using: .utf8)!)
 
-                // userId 파트 (이메일 기반으로 조회한 id)
                 body.append("--\(boundary)\r\n".data(using: .utf8)!)
                 body.append("Content-Disposition: form-data; name=\"userId\"\r\n\r\n".data(using: .utf8)!)
                 body.append("\(userId)\r\n".data(using: .utf8)!)
 
-                // 종료
                 body.append("--\(boundary)--\r\n".data(using: .utf8)!)
                 request.httpBody = body
                 
                 let config = URLSessionConfiguration.default
-                config.timeoutIntervalForRequest = 60  // 요청 타임아웃 60초
+                config.timeoutIntervalForRequest = 90
 
                 let session = URLSession(configuration: config)
                 

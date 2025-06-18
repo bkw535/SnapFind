@@ -36,18 +36,32 @@ public class CrawlingService {
                 TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException ignored) {}
 
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(60));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(90));
             try {
-                wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                System.out.println("⏳ 상품 요소 대기 중...");
+                wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(
                         By.cssSelector("#productListArea li.prod_item")
                 ));
+                System.out.println("✅ 상품 요소 감지 완료!");
             } catch (TimeoutException e) {
                 System.out.println("⚠️ 요소 대기 시간 초과. 페이지가 완전히 로드되지 않았을 수 있습니다.");
+                System.out.println("ℹ️ 현재 페이지 URL: " + driver.getCurrentUrl());
+                System.out.println("📄 현재 페이지 소스 일부: ");
+                System.out.println(driver.getPageSource().substring(0, Math.min(2000, driver.getPageSource().length())));
             }
 
             List<WebElement> itemElements = driver.findElements(
                     By.cssSelector("#productListArea li.prod_item:not(.prod_ad_item)")
             );
+            System.out.println("📦 크롤링된 상품 개수: " + itemElements.size());
+            for (WebElement item : itemElements) {
+                try {
+                    String name = item.findElement(By.cssSelector("p.prod_name > a")).getText();
+                    System.out.println("🛒 상품명 추출 성공: " + name);
+                } catch (Exception e) {
+                    System.out.println("❌ 상품명 추출 실패: " + e.getMessage());
+                }
+            }
 
             result = itemElements.stream()
                     .map(item -> {
