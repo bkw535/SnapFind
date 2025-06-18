@@ -34,15 +34,15 @@ public class WebDriverUtil {
         chromeOptions.addArguments("--no-sandbox");
         chromeOptions.addArguments("--disable-dev-shm-usage");
         chromeOptions.addArguments("--disable-gpu");
+        chromeOptions.addArguments("window-size=1920,1080");
         chromeOptions.addArguments(
-                "user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) " +
-                        "AppleWebKit/605.1.15 (KHTML, like Gecko) " +
-                        "Version/17.0 Mobile/15E148 Safari/604.1"
+                "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+                        "AppleWebKit/537.36 (KHTML, like Gecko) " +
+                        "Chrome/125.0.0.0 Safari/537.36"
         );
-        chromeOptions.addArguments("window-size=430,932");
 
         WebDriver driver = new ChromeDriver(chromeOptions);
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(30));
+        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(60));
         return driver;
     }
 

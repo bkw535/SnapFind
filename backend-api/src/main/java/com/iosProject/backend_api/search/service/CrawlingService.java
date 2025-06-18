@@ -4,17 +4,18 @@ import com.iosProject.backend_api.config.WebDriverUtil;
 import com.iosProject.backend_api.search.domain.ProductInfo;
 import lombok.RequiredArgsConstructor;
 import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,43 +28,40 @@ public class CrawlingService {
 
         try {
             String encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8);
-            String url = "https://m.danawa.com/search/?keyword=" + encodedKeyword;
+            String url = "https://search.danawa.com/dsearch.php?query=" + encodedKeyword;
             System.out.println("🔍 검색 URL: " + url);
             driver.get(url);
-            System.out.println("페이지 소스: " + driver.getPageSource());
-            Thread.sleep(10000);
+
+            try {
+                TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException ignored) {}
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
-            List<WebElement> itemElements = null;
             try {
-                // 모바일 버전의 셀렉터
-                itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                        By.cssSelector("div.prod_item:not(.prod_ad_item)")
+                wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                        By.cssSelector("#productListArea li.prod_item")
                 ));
-            } catch (Exception e) {
-                System.out.println("❌ 첫 번째 셀렉터 실패: " + e.getMessage());
-                // 대체 셀렉터 시도
-                try {
-                    itemElements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                            By.cssSelector("div.prod_item")
-                    ));
-                } catch (Exception e2) {
-                    System.out.println("❌ 두 번째 셀렉터도 실패: " + e2.getMessage());
-                    return result;
-                }
+            } catch (TimeoutException e) {
+                System.out.println("⚠️ 요소 대기 시간 초과. 페이지가 완전히 로드되지 않았을 수 있습니다.");
             }
 
-            String rawKeyword = keyword;
+            List<WebElement> itemElements = driver.findElements(
+                    By.cssSelector("#productListArea li.prod_item:not(.prod_ad_item)")
+            );
 
             result = itemElements.stream()
                     .map(item -> {
                         try {
-                            String name = item.findElement(By.cssSelector("p.prod_name")).getText();
-                            String price = item.findElement(By.cssSelector("p.price")).getText();
-                            String shopUrl = item.findElement(By.cssSelector("a.prod_link")).getAttribute("href");
+                            String name = item.findElement(By.cssSelector("p.prod_name > a")).getText();
+                            String price = item.findElement(By.cssSelector("p.price_sect")).getText();
+                            String shopUrl = item.findElement(By.cssSelector("p.prod_name > a")).getAttribute("href");
                             String shop = "다나와";
 
-                            double sim = StringSimilarity.similarity(rawKeyword, name);
+                            if (shopUrl.contains("/api_ui/") || shopUrl.contains("/files/")) {
+                                return null;
+                            }
+
+                            double sim = StringSimilarity.similarity(keyword, name);
 
                             return new AbstractMap.SimpleEntry<>(sim, ProductInfo.builder()
                                     .name(name)
